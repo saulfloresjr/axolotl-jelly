@@ -1,0 +1,288 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Axolotl Jelly</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap">
+<style>
+/* Layout: a full-bleed specimen table; the specimen card pinned right, field notes bottom-left, the method folded away bottom-right */
+:root {
+  --paper: #e4e1dc;
+  --ink: #1e1c19;
+  --muted: #77726a;
+  --rule: #c9c3ba;
+  --card: rgba(232, 229, 224, 0.74);
+  --ink2: #5d5952;
+  --line: #8f8a82;
+  --accent: #8a3d4c;
+  --press: rgba(255, 255, 255, 0.3);
+  --live: #7f9c88;
+  --leucistic: #f1a7b5; --golden: #efc35c; --wild: #6e7a4b; --lagoon: #2cbfa6; --milk: #f6eeec; --gillc: #c8344f;
+  --serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --gut: max(16px, env(safe-area-inset-left, 0px));
+  --gutR: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: light;
+}
+/* Tables: each one re-colours the page to sit on it */
+:root[data-table="mat"] { --paper: #2c5a4b; --ink: #f2f0e6; --ink2: #cfdccf; --muted: #a3bdae; --rule: rgba(242, 240, 230, 0.2); --line: rgba(242, 240, 230, 0.5); --card: rgba(26, 56, 46, 0.74); --accent: #ffb7c4; --press: rgba(255, 255, 255, 0.1); color-scheme: dark; }
+:root[data-table="marble"] { --paper: #ebeae7; --card: rgba(242, 241, 238, 0.8); --rule: #cfccc6; }
+:root[data-table="night"] { --paper: #101218; --ink: #ecebe7; --ink2: #b8bbc3; --muted: #868b95; --rule: rgba(236, 235, 231, 0.13); --line: rgba(236, 235, 231, 0.42); --card: rgba(22, 24, 31, 0.76); --accent: #f4a6b8; --press: rgba(255, 255, 255, 0.08); color-scheme: dark; }
+.tables { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.table { all: unset; cursor: pointer; display: grid; gap: 6px; justify-items: center; padding: 5px 2px 6px; border: 1px solid transparent; font-style: italic; font-size: 13px; color: var(--muted); }
+.table[aria-pressed="true"] { border-color: var(--line); color: var(--ink); background: var(--press); }
+.table:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.tile { width: 100%; height: 22px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.tile.paper { background: #e4e1dc; }
+.tile.mat { background: repeating-linear-gradient(90deg, transparent 0 7px, rgba(150, 200, 160, 0.55) 7px 8px), repeating-linear-gradient(0deg, transparent 0 7px, rgba(150, 200, 160, 0.55) 7px 8px), #2c5a4b; }
+.tile.marble { background: linear-gradient(118deg, transparent 0 42%, rgba(120, 118, 112, 0.5) 45%, transparent 49%), linear-gradient(140deg, transparent 0 70%, rgba(120, 118, 112, 0.25) 72%, transparent 75%), #ebeae7; }
+.tile.night { background: radial-gradient(circle at 50% 60%, #3a3d47 0, #101218 70%); }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--serif); -webkit-font-smoothing: antialiased; }
+.label { font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.app { position: fixed; inset: 0; overflow: hidden; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+#gl.dragging { cursor: grabbing !important; }
+.app > :not(#gl) { position: absolute; }
+
+.masthead { top: calc(40px + env(safe-area-inset-top, 0px)); left: calc(var(--gut) + 36px); pointer-events: none; max-width: 330px; }
+.masthead .label { color: var(--ink2); }
+h1 { margin: 22px 0 18px; font-weight: 500; font-size: clamp(56px, 7.4vw, 104px); line-height: 0.86; letter-spacing: -0.02em; text-wrap: balance; }
+h1 em { display: block; padding-left: 0.85em; font-style: italic; font-weight: 400; }
+.lede { margin: 0; font-size: 18px; line-height: 1.5; color: var(--ink2); max-width: 30ch; }
+
+#badge { top: calc(36px + env(safe-area-inset-top, 0px)); right: calc(var(--gutR) + 36px); display: flex; align-items: center; gap: 10px; padding: 8px 14px; border: 1px solid var(--rule); font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; }
+#badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--live); box-shadow: 0 0 0 3px rgba(127, 156, 136, 0.22); animation: pulse 2.4s ease-in-out infinite; }
+#badge.off::before { background: #b46a4f; animation: none; }
+@keyframes pulse { 50% { opacity: 0.45; } }
+
+#panel { top: calc(84px + env(safe-area-inset-top, 0px)); right: calc(var(--gutR) + 36px); width: 284px; padding: 20px 22px 22px; border: 1px solid var(--rule); background: var(--card); backdrop-filter: blur(6px); display: grid; gap: 12px; }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+.panel-head i { font-size: 15px; color: var(--muted); }
+.group { display: grid; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+.swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.swatch { font-size: 12px !important; padding: 5px 2px 6px !important; gap: 6px !important; text-align: center; }
+.chip { height: 26px !important; }
+.chip.rainbow { --gillc: #d33a6a; --c: linear-gradient(90deg, #ff5a5a, #ffb23d, #ffe04a, #6fdc6a, #4fb4ff); background: linear-gradient(90deg, var(--gillc) 0 14%, transparent 14%), linear-gradient(var(--milk) 0 0) bottom / 100% 38% no-repeat, linear-gradient(90deg, #ff5a5a, #ffb23d, #ffe04a, #6fdc6a, #4fb4ff) !important; }
+.finishes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.finish { all: unset; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid transparent; font-style: italic; font-size: 13.5px; color: var(--muted); }
+.finish[aria-pressed="true"] { border-color: var(--line); color: var(--ink); background: var(--press); }
+.finish:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.coat { width: 16px; height: 16px; border-radius: 50%; flex: none; }
+.coat.glossy { background: radial-gradient(circle at 35% 30%, #fff 0 12%, #f08aa0 30%, #b83a5a 100%); }
+.coat.sour { background: radial-gradient(circle, #fff 0 1.2px, transparent 1.6px) 0 0 / 4px 4px, radial-gradient(circle, #fff 0 1px, transparent 1.4px) 2px 2px / 5px 5px, #f0a0b0; }
+.coat.frosted { background: radial-gradient(circle at 35% 30%, #fbe9ee, #e2a7b5); }
+/* inside Dream Meridian the page supplies the title */
+:root.embed .masthead, :root.embed #badge, :root.embed .handle, :root.embed .fine { display: none !important; }
+@media (min-width: 861px) {
+  :root.embed #panel { top: calc(20px + env(safe-area-inset-top, 0px)); }
+  :root.embed .inside { top: calc(20px + env(safe-area-inset-top, 0px)); bottom: auto; left: calc(var(--gut) + 20px); right: auto; }
+  :root.embed .notes { left: calc(var(--gut) + 20px); bottom: 20px; }
+}
+/* ?cover: just the specimen, for library thumbnails */
+:root.cover #panel, :root.cover .notes, :root.cover .inside, :root.cover #hint { display: none !important; }
+@media (min-width: 861px) { :root.embed #hint { top: calc(20px + env(safe-area-inset-top, 0px)); } }
+/* not enough room between the explainer and the panel: tuck the tip under the explainer */
+@media (min-width: 861px) and (max-width: 1180px) { :root.embed #hint { top: calc(88px + env(safe-area-inset-top, 0px)); left: calc(var(--gut) + 20px); transform: none; } }
+.swatch { all: unset; cursor: pointer; display: grid; gap: 8px; padding: 6px 6px 8px; border: 1px solid transparent; font-style: italic; font-size: 15px; color: var(--muted); }
+.swatch[aria-pressed="true"] { border-color: var(--line); color: var(--ink); background: var(--press); }
+.swatch:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.chip { height: 34px; background: linear-gradient(90deg, var(--gillc) 0 14%, transparent 14%), linear-gradient(var(--c) 0 62%, var(--milk) 62%); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06); }
+.chip.wild { --gillc: #5b4552; }
+.chip.lagoon { --gillc: #1f7f80; }
+.chip.golden { --gillc: #e0535a; }
+.row { display: flex; justify-content: space-between; align-items: baseline; }
+.row .num { font-size: 13.5px; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; margin: 0; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 1px; background: var(--line); }
+input[type="range"]::-moz-range-track { height: 1px; background: var(--line); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; border: 1px solid var(--ink); background: var(--paper); }
+input[type="range"]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; border: 1px solid var(--ink); background: var(--paper); }
+input[type="range"]:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.ends { display: flex; justify-content: space-between; margin-top: -8px; font-style: italic; font-size: 13px; color: var(--muted); }
+.buttons { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; }
+button.b { font-family: var(--sans); font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line); padding: 12px 14px; cursor: pointer; transition: background 0.15s; }
+button.b:hover { background: var(--press); }
+button.b:active { background: rgba(0, 0, 0, 0.05); }
+button.b:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.checks { display: flex; flex-wrap: wrap; gap: 10px 20px; font-family: var(--sans); font-size: 14px; }
+.checks label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.checks input { width: 14px; height: 14px; margin: 0; accent-color: var(--ink); }
+
+.notes { left: calc(var(--gut) + 36px); bottom: calc(28px + env(safe-area-inset-bottom, 0px)); width: min(480px, 40vw); pointer-events: none; display: grid; gap: 16px; }
+.handle { margin: 0; font-size: 17.5px; line-height: 1.5; font-style: italic; }
+.handle .label { font-style: normal; margin-right: 6px; color: var(--ink2); }
+.metrics { display: grid; grid-template-columns: auto auto auto auto; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.metrics div { padding: 12px 18px 10px; display: grid; gap: 6px; }
+.metrics div:first-child { padding-left: 0; }
+.metrics div + div { border-left: 1px solid var(--rule); }
+.metrics .label { font-size: 10.5px; color: var(--ink2); }
+.metrics .num { font-size: 22px; }
+.metrics small { font-family: var(--sans); font-size: 12px; color: var(--muted); margin-left: 3px; }
+.status { margin: 0; min-height: 1.5em; font-style: italic; font-size: 15.5px; color: var(--accent); }
+.fine { margin: 0; font-family: var(--sans); font-size: 12px; line-height: 1.55; color: var(--muted); max-width: 62ch; }
+
+.inside { right: calc(var(--gutR) + 36px); bottom: calc(36px + env(safe-area-inset-bottom, 0px)); width: min(360px, 34vw); border: 1px solid var(--rule); background: var(--card); backdrop-filter: blur(6px); }
+.inside summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; }
+.inside summary::-webkit-details-marker { display: none; }
+.inside summary::after { content: "+"; font-family: var(--sans); font-size: 18px; font-weight: 300; color: var(--muted); }
+.inside[open] summary::after { content: "−"; }
+.inside summary:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.inside .body { max-height: min(58vh, 560px); overflow-y: auto; padding: 4px 18px 18px; border-top: 1px solid var(--rule); }
+.inside ol { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 14px; }
+.inside li { counter-increment: step; display: grid; grid-template-columns: 26px 1fr; gap: 2px 8px; font-family: var(--sans); font-size: 13px; line-height: 1.5; color: var(--ink2); }
+.inside li::before { content: counter(step); grid-row: span 2; font-family: var(--mono); font-size: 12px; color: var(--muted); padding-top: 2px; }
+.inside li b { font-family: var(--serif); font-size: 16px; font-weight: 500; color: var(--ink); }
+.inside .live { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule); font-family: var(--mono); font-size: 12px; color: var(--muted); display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+.inside .live span:nth-child(even) { color: var(--ink); text-align: right; }
+.inside .stack { margin-top: 14px; font-family: var(--sans); font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.inside code { font-family: var(--mono); font-size: 11.5px; color: var(--ink); }
+
+/* the first-time tip: a pill at the top of the stage, clear of the axolotl and the panels */
+#hint { left: 50%; top: calc(36px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); padding: 8px 16px; border: 1px solid var(--rule); border-radius: 999px; background: var(--card); backdrop-filter: blur(6px); font-family: var(--sans); font-size: 14px; color: var(--ink); white-space: nowrap; pointer-events: none; transition: opacity 0.6s; }
+#hint b { font-weight: 600; }
+#hint.gone { opacity: 0; }
+#nogpu { inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; background: var(--paper); }
+#nogpu p { max-width: 42ch; font-size: 19px; line-height: 1.5; }
+
+@media (max-height: 800px) and (min-width: 861px) { .ends { display: none; } .tile { height: 16px; } }
+@media (max-width: 1080px) and (min-width: 861px) { .notes { width: min(420px, 44vw); } .lede { display: none; } }
+@media (max-width: 860px) {
+  .app { position: static; overflow: visible; display: grid; gap: 22px; padding-left: var(--gut); padding-right: var(--gutR); padding-block: 0 32px; }
+  .app > :not(#gl) { position: static; width: auto; max-width: none; }
+  .masthead { order: 0; padding-top: 22px; display: grid; grid-template-columns: 1fr auto; align-items: start; column-gap: 12px; }
+  .masthead .label { grid-column: 1; }
+  h1 { grid-column: 1 / -1; margin: 14px 0 10px; font-size: 52px; }
+  .lede { grid-column: 1 / -1; font-size: 16px; display: block; }
+  #badge { order: 1; justify-self: start; }
+  #gl { order: 2; position: relative; inset: auto; height: 56vh; min-height: 300px; margin-left: calc(-1 * var(--gut)); margin-right: calc(-1 * var(--gutR)); width: calc(100% + var(--gut) + var(--gutR)); }
+  #hint { order: 1; justify-self: center; transform: none; margin-top: 14px; }
+  #panel { order: 3; width: auto; }
+  .notes { order: 4; width: auto; }
+  .inside { order: 5; width: auto; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .metrics div:nth-child(3) { padding-left: 0; border-left: 0; }
+  .metrics div:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+@media (prefers-reduced-motion: reduce) { #badge::before { animation: none; } }
+</style>
+<script>
+  // set the table before first paint so the page never flashes the wrong colours
+  if (/[?&]embed\b/.test(location.search)) document.documentElement.classList.add('embed');
+  if (/[?&]cover\b/.test(location.search)) document.documentElement.classList.add('embed', 'cover');
+  (() => { let t = 'paper'; try { t = localStorage.getItem('axolotl-table-choice') || 'paper'; } catch (_) {} document.documentElement.dataset.table = t; })();
+</script>
+
+<main class="app">
+  <canvas id="gl" tabindex="0" role="img" aria-label="Interactive 3D axolotl made of pink jelly lying on a pale table, with feathery red gills, four splayed legs and a finned tail. Pull a leg hard enough and it tears off, twitches on the table and grows back from the stump."></canvas>
+
+  <header class="masthead">
+    <span class="label">Confectionery bestiary / Plate VIII</span>
+    <h1>Axolotl <em>Jelly.</em></h1>
+    <p class="lede">A strawberry-gummy salamander with feathered gills. Pull off a leg and it grows another.</p>
+  </header>
+
+  <div id="badge"><span id="badge-text">WebGPU · Live</span></div>
+
+  <aside id="panel" aria-label="Specimen controls">
+    <div class="panel-head"><span class="label">The specimen</span><i>pl. VIII</i></div>
+    <div class="group">
+      <span class="label">Morph</span>
+      <div class="swatches">
+        <button class="swatch" data-look="rainbow" aria-pressed="false" id="sw-rainbow"><span class="chip rainbow" style="--c: var(--rainbow)"></span>Rainbow</button>
+        <button class="swatch" data-look="leucistic" aria-pressed="true" id="sw-leucistic"><span class="chip" style="--c: var(--leucistic)"></span>Leucistic</button>
+        <button class="swatch" data-look="golden" aria-pressed="false" id="sw-golden"><span class="chip golden" style="--c: var(--golden)"></span>Golden</button>
+        <button class="swatch" data-look="wild" aria-pressed="false" id="sw-wild"><span class="chip wild" style="--c: var(--wild)"></span>Wild</button>
+        <button class="swatch" data-look="lagoon" aria-pressed="false" id="sw-lagoon"><span class="chip lagoon" style="--c: var(--lagoon)"></span>Lagoon</button>
+      </div>
+      <span class="label">Finish</span>
+      <div class="finishes">
+        <button class="finish" data-finish="sour" aria-pressed="false" id="fn-sour"><span class="coat sour"></span>Sour</button>
+        <button class="finish" data-finish="glossy" aria-pressed="true" id="fn-glossy"><span class="coat glossy"></span>Glossy</button>
+        <button class="finish" data-finish="frosted" aria-pressed="false" id="fn-frosted"><span class="coat frosted"></span>Frosted</button>
+      </div>
+    </div>
+    <div class="group">
+      <span class="label">Table</span>
+      <div class="tables">
+        <button class="table" data-table="paper" aria-pressed="true" id="tb-paper"><span class="tile paper"></span>Paper</button>
+        <button class="table" data-table="mat" aria-pressed="false" id="tb-mat"><span class="tile mat"></span>Mat</button>
+        <button class="table" data-table="marble" aria-pressed="false" id="tb-marble"><span class="tile marble"></span>Marble</button>
+        <button class="table" data-table="night" aria-pressed="false" id="tb-night"><span class="tile night"></span>Night</button>
+      </div>
+    </div>
+    <div class="group">
+      <div class="row"><label class="label" for="firmness">Firmness</label><span class="num" id="firmness-out">0.50</span></div>
+      <input type="range" id="firmness" min="0" max="1" step="0.01" value="0.5">
+      <div class="ends"><span>trembling</span><span>set</span></div>
+      <div class="row"><label class="label" for="damping">Internal damping</label><span class="num" id="damping-out">0.40</span></div>
+      <input type="range" id="damping" min="0" max="1" step="0.01" value="0.4">
+      <div class="ends"><span>lively</span><span>syrupy</span></div>
+      <div class="row"><label class="label" for="regrow">Regrowth</label><span class="num" id="regrow-out">0.50</span></div>
+      <input type="range" id="regrow" min="0" max="1" step="0.01" value="0.5">
+      <div class="ends"><span>patient</span><span>eager</span></div>
+    </div>
+    <div class="buttons">
+      <button class="b" id="startle">Startle it</button>
+      <button class="b" id="reset">Reset</button>
+      <button class="b" id="pause">Pause</button>
+    </div>
+    <div class="checks">
+      <label><input type="checkbox" id="slow"> ¼ speed</label>
+      <label><input type="checkbox" id="mesh"> Show mesh</label>
+      <label><input type="checkbox" id="sound" checked> Sound</label>
+    </div>
+  </aside>
+
+  <section class="notes">
+    <p class="handle"><span class="label">Handle</span>Grab a foot and pull until the leg gives. It keeps twitching on the table while a new one buds from the stump. Lean on the head, drag the tail, or startle it and watch the gills flare. Sound starts with your first touch.</p>
+    <div class="metrics">
+      <div><span class="label">Mass</span><span class="num">≈<span id="m-mass">–</span><small>g</small></span></div>
+      <div><span class="label">Volume</span><span class="num"><span id="m-vol">100.0</span><small>% of rest</small></span></div>
+      <div><span class="label">Length</span><span class="num"><span id="m-len">–</span><small>cm</small></span></div>
+      <div><span class="label">Legs</span><span class="num"><span id="m-legs">4/4</span><small id="m-legs-note">attached</small></span></div>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+    <p class="fine">At table scale, 1 simulation unit is 2 cm and the gummy weighs 1.3 g/cm³. Volume is summed every frame over the body's tetrahedra. Length runs from snout to tail tip.</p>
+  </section>
+
+  <details class="inside" id="inside">
+    <summary><span class="label">Inside the experiment</span></summary>
+    <div class="body">
+      <ol>
+        <li><b>Built in parts</b><span>The axolotl is a set of distance functions: a lofted body with a broad flat head, a fin blade that wraps the tail, and four legs with splayed fingers. The body and each leg are meshed separately, so each leg is a closed gummy of its own that sits a little way into the body.</span></li>
+        <li><b>Skins and lattices</b><span>Surface nets gives <span class="num" id="x-skin">–</span> skin triangles. Underneath, the body is <span class="num" id="x-body">–</span>, and the legs add <span class="num" id="x-legs">–</span>. Glue links tie each leg's root to the body nodes around its socket.</span></li>
+        <li><b>Soft body, with muscles</b><span>XPBD keeps every edge near its rest length and every tetrahedron near its rest volume. The tail sways because flank edges lengthen and shorten in a travelling wave. Startle speeds that wave up into a flick.</span></li>
+        <li><b>Tearing</b><span>While you hold a leg, the solver measures how far its glue is stretched. Past a limit, the leg's particles are copied into a spare slot that is no longer glued to anything. The copy keeps simulating, and its own edges pulse for a while, so it twitches.</span></li>
+        <li><b>Regrowth</b><span>The attached slot restarts as a bud at 5% size, placed and turned to match the socket. Its rest lengths, rest volumes and glue lengths are scaled up over a few seconds with a slight overshoot. The physics does the growing; the bud glows pale until it is full size.</span></li>
+        <li><b>Feathered gills</b><span>Six stalks with four fronds at each joint, <span class="num" id="x-gills">–</span> in all. Each is pulled softly toward its rest pose, turned to match the head, so the gills hold their shape and still trail and flutter. They swell slightly with each breath.</span></li>
+        <li><b>Sound from the physics</b><span>Every noise is synthesized with Web Audio; there are no recordings. Grabbing is a water balloon and letting go is a plunger. Holding a leg starts a low gummy groan that drifts and opens up as the glue stretches, until it pops with a cork and a boing. Torn legs flop like a fish in time with their twitch, drops plip on the table and drum on the jelly, a slap lands with a wub, twisting jiggles it like jello, and the body wibbles as it settles. Slow motion goes in with a whoom and out with a boing.</span></li>
+        <li><b>Tables</b><span>The floor is a single full-screen pass that finds where each pixel's ray meets the table. The cutting mat's grid, the marble's veins and the night table's spotlight are drawn there from noise and the pixel's own footprint, so lines stay crisp at any distance. The page's colours switch with the table.</span></li>
+        <li><b>Coatings</b><span>Sour sugar is a 3-D cell pattern laid on the jelly's rest shape, so the crystals stay put as it squishes. Each crystal gets its own tilted normal, so only a few catch the light at once and twinkle, and the gel under them goes cloudy. Frosted is the same idea with finer, flatter grains and a satin sheen. The ideas came from the texture library in CNC Kitchen's stlTexturizer; the code here is our own.</span></li>
+        <li><b>Light through gel</b><span>Four render passes per frame: shadow map, tinted floor shadow, back faces for thickness, then front faces with absorption, refraction and Fresnel. Gills use a denser, redder tint; the wild morph scatters dark speckles through the gel.</span></li>
+      </ol>
+      <div class="live">
+        <span>legs regrown</span><span id="x-regrown">0</span>
+        <span>solver time</span><span><span id="x-ms">–</span> ms</span>
+        <span>frame rate</span><span><span id="x-fps">–</span> fps</span>
+        <span>mesh build at load</span><span><span id="x-build">–</span> ms</span>
+      </div>
+      <p class="stack">Stack: plain JavaScript and WGSL, no libraries. The solver runs on the CPU in typed arrays; WebGPU does skinning, the instanced legs and gills, shadows, thickness and shading.</p>
+    </div>
+  </details>
+
+  <div id="hint"><b>Tip:</b> grab a foot and pull until it pops off</div>
+  <div id="nogpu" hidden><p>This page needs WebGPU to draw the jelly. It works in current Chrome, Edge and Safari 26 and later. On Firefox, turn on <code>dom.webgpu.enabled</code>.</p></div>
+</main>
+
+<script src="shape.js"></script>
+<script src="sim.js"></script>
+<script src="render.js"></script>
+<script src="sound.js"></script>
+<script src="main.js"></script>
